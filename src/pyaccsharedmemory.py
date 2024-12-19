@@ -460,6 +460,8 @@ class accSM(mmap.mmap):
 
     def unpack_value(self, value_type: str, padding=0) -> float:
         bytes = self.read(4 + padding)
+        if len(bytes) < 4:  # Verificar se o buffer tem bytes suficientes
+            raise ValueError(f"Expected 4 bytes, but got {len(bytes)}")
         format = f"={value_type}{padding}x"
         return struct.unpack(format, bytes)[0]
 
@@ -489,6 +491,7 @@ class accSM(mmap.mmap):
 
 def read_physic_map(physic_map: accSM) -> PhysicsMap:
     physic_map.seek(0)
+    physic_map.flush()
     temp = {
         "packetID": physic_map.unpack_value("i"),
 
@@ -1028,25 +1031,29 @@ class accSharedMemory():
         self.graphicSM.close()
         self.staticSM.close()
 
+from time import sleep
 
 def simple_test() -> None:
-
     asm = accSharedMemory()
 
-    for i in range(1000):
+    for i in range(50000):
         sm = asm.read_shared_memory()
+        if sm is None:
+            print(f"Failed to read shared memory at iteration {i}")
+            continue
 
-        if sm is not None and i % 200 == 0:
+        else:
             print("Physics:")
-            print(f"Pad life: {sm.Physics.pad_life}")
+            print(f"Gas: {sm.Physics.gas}", end='----------')
+            print(f"Brake: {sm.Physics.brake}", end='----------')
+            print(f"Volante: {sm.Physics.steer_angle}")
 
-            print("Graphics:")
-            print(f"Strategy tyre set: {sm.Graphics.penalty.name}")
 
-            print("Static: ")
-            print(f"Max RPM: {sm.Static.max_rpm}")
+            sleep(0.01)
 
     asm.close()
+
+
 
 
 if __name__ == "__main__":
