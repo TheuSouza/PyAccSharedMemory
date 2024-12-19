@@ -693,6 +693,7 @@ def read_physic_map(physic_map: accSM) -> PhysicsMap:
 
 def read_graphics_map(graphic_map: accSM) -> GraphicsMap:
     graphic_map.seek(0)
+    graphic_map.flush()
     temp = {
         "packetID": graphic_map.unpack_value("i"),
         "acc_status": ACC_STATUS(graphic_map.unpack_value("i")),
@@ -881,7 +882,7 @@ def read_graphics_map(graphic_map: accSM) -> GraphicsMap:
 
 def read_static_map(static_map: accSM) -> StaticsMap:
     static_map.seek(0)
-
+    static_map.flush()
     temp = {
         "smVersion": static_map.unpack_string(15),
         "acVersion": static_map.unpack_string(15),
